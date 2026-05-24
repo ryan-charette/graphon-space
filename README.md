@@ -141,10 +141,16 @@ change optimizers, but it does affect reported entropy values.
 
 ## Numerical Caveats
 
-- The feasible-region scatter plots are samples, not certificates.
-- Boundary and entropy optimizers are local, multi-start numerical searches.
 - Dense `optimize-grid` runs are much more expensive than sampling or boundary
   validation. The current triangle grid is deliberately coarse because broad
   rectangular `(e,t)` grids include many infeasible or hard cells.
 - For larger Sobol runs, use a power-of-two sample count such as `65536` to keep
   Sobol balance properties exact.
+
+## Citation
+
+The edge-2-star experiments and validation targets are based in part on:
+
+Charles Radin and Lorenzo Sadun, "Optimal graphons in the edge-2star model,"
+arXiv:2305.00333, 2023. <https://arxiv.org/abs/2305.00333>
+
