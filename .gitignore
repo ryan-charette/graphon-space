@@ -1,6 +1,9 @@
 .venv/
+.tox/
 __pycache__/
 *.py[cod]
+.env
+.python-version
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
@@ -11,3 +14,8 @@ outputs/
 *.parquet
 *.csv
 *.png
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/
