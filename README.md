@@ -81,6 +81,12 @@ The exact data-producing commands used for the first-pass figure pack were:
 .\.venv\Scripts\graphon-space.exe stability --model two-star --edge 0.5 --t-tilde-grid 13 --kmax 3 --starts 2 --seed 20260603 --mode hybrid --out outputs\final\data\stability_2star_e05.parquet
 ```
 
+The fixed-edge constructive `A,B,c` tripodal search can be run with:
+
+```powershell
+.\.venv\Scripts\graphon-space.exe constructive --edge 0.4 --ab-samples 1000 --c-samples 100 --seed 20260604 --out outputs\constructive_e04.parquet
+```
+
 The CLI plot commands used for the basic generated figures were:
 
 ```powershell
@@ -122,6 +128,7 @@ regenerate analysis plots in memory:
 - `graphon_space.sampling`: random, boundary-biased, Latin hypercube, and Sobol sampling.
 - `graphon_space.optimize`: fixed-target entropy search and family comparison.
 - `graphon_space.boundary`: fixed-edge min/max boundary searches and known envelope helpers.
+- `graphon_space.constructive`: fixed-edge `A,B,c` tripodal construction and search.
 - `graphon_space.phase`: symmetry classification and winner summaries.
 - `graphon_space.diagnostics`: residuals, duplicate-pode checks, finite-difference Hessians.
 - `graphon_space.visualize`: scatter, boundary, entropy, phase, gap, and pode heatmap plots.

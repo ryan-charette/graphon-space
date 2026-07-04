@@ -9,17 +9,10 @@ from pathlib import Path
 import numpy as np
 
 from .boundary import boundary_grid
+from .constructive import ConstructiveSearchConfig, constructive_tripodal_search
 from .io import graphon_from_record, load_dataframe, save_dataframe
 from .optimize import compare_families, optimize_grid
 from .sampling import SamplingConfig, sample_feasible_region
-from .visualize import (
-    boundary_plot,
-    entropy_heatmap,
-    feasible_scatter,
-    pode_heatmap,
-    symmetric_gap_plot,
-    winner_map,
-)
 
 
 def _parse_grid(text: str) -> tuple[int, int]:
@@ -84,9 +77,26 @@ def build_parser() -> argparse.ArgumentParser:
     stability.add_argument("--mode", choices=["constrained", "penalty", "hybrid"], default="hybrid")
     stability.add_argument("--out", required=True)
 
+    constructive = sub.add_parser("constructive", help="run the fixed-edge A,B,c tripodal search")
+    constructive.add_argument("--edge", type=float, required=True)
+    constructive.add_argument("--ab-samples", type=int, default=1_000)
+    constructive.add_argument("--c-samples", type=int, default=100)
+    constructive.add_argument("--seed", type=int, default=None)
+    constructive.add_argument("--min-ratio", type=float, default=10.0)
+    constructive.add_argument("--c-sampler", choices=["grid", "uniform"], default="grid")
+    constructive.add_argument("--bipodal-mode", choices=["optimized", "merged"], default="optimized")
+    constructive.add_argument("--bipodal-starts", type=int, default=8)
+    constructive.add_argument("--mode", choices=["constrained", "penalty", "hybrid"], default="hybrid")
+    constructive.add_argument("--entropy-gap-tol", type=float, default=0.0)
+    constructive.add_argument("--out", required=True)
+
     plot = sub.add_parser("plot", help="plot saved experiment data")
     plot.add_argument("--input", required=True)
-    plot.add_argument("--kind", choices=["scatter", "boundary", "entropy", "phase-map", "sym-gap", "pode"], required=True)
+    plot.add_argument(
+        "--kind",
+        choices=["scatter", "boundary", "entropy", "phase-map", "sym-gap", "pode"],
+        required=True,
+    )
     plot.add_argument("--out", required=True)
     plot.add_argument("--row", type=int, default=0)
 
@@ -118,7 +128,6 @@ def main(argv: list[str] | None = None) -> int:
             kmax=args.kmax,
             starts=args.starts,
             seed=args.seed,
-            mode=args.mode,
         )
         save_dataframe(df, args.out)
         print(f"wrote {len(df)} boundary records to {args.out}")
@@ -137,7 +146,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.out:
             save_dataframe(df, args.out)
             print(f"wrote {len(df)} comparison records to {args.out}")
-        print(df[["family", "success", "entropy", "edge_residual", "t_residual", "symmetry_class"]].to_string(index=False))
+        columns = ["family", "success", "entropy", "edge_residual", "t_residual", "symmetry_class"]
+        print(df[columns].to_string(index=False))
         return 0
 
     if args.command == "optimize-grid":
@@ -175,7 +185,34 @@ def main(argv: list[str] | None = None) -> int:
         print(f"wrote {len(df)} stability scan records to {args.out}")
         return 0
 
+    if args.command == "constructive":
+        config = ConstructiveSearchConfig(
+            edge=args.edge,
+            ab_samples=args.ab_samples,
+            c_samples=args.c_samples,
+            seed=args.seed,
+            min_ratio=args.min_ratio,
+            c_sampler=args.c_sampler,
+            bipodal_mode=args.bipodal_mode,
+            bipodal_starts=args.bipodal_starts,
+            optimizer_mode=args.mode,
+            entropy_gap_tol=args.entropy_gap_tol,
+        )
+        df = constructive_tripodal_search(config)
+        save_dataframe(df, args.out)
+        print(f"wrote {len(df)} constructive search records to {args.out}")
+        return 0
+
     if args.command == "plot":
+        from .visualize import (
+            boundary_plot,
+            entropy_heatmap,
+            feasible_scatter,
+            pode_heatmap,
+            symmetric_gap_plot,
+            winner_map,
+        )
+
         df = load_dataframe(args.input)
         out = Path(args.out)
         if args.kind == "scatter":
